@@ -17,8 +17,6 @@ namespace Lexicon_LMS.Core.Entities.ViewModel
         [DisplayName("Start Time")]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:d}")]
         public DateTime StartDate { get; set; }
-        public ICollection<Document> Documents { get; set; } = new List<Document>();
-        public IFormFile UploadedFile { get; set; }
 
         [DisplayName("End Time")]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:d}")]
@@ -32,6 +30,7 @@ namespace Lexicon_LMS.Core.Entities.ViewModel
         public string ModuleName { get; set; } = string.Empty;
         public int ActivityId { get; set; }
         public IFormFile UploadedFile { get; set; }
+        
         [DisplayName("Uploaded Documents")]
         public ICollection<Document> Documents { get; set; } = new List<Document>();
     }

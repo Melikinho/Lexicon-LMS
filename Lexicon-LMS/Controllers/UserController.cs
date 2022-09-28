@@ -348,9 +348,9 @@ namespace Lexicon_LMS.Controllers
 
             return File(fs, "application/octet-stream", fileName);
         }
-        public IActionResult FileUpload()
-        {
-            return View();
-        }
+        //public IActionResult FileUpload()
+        //{
+        //    return View();
+        //}
     }
 }
