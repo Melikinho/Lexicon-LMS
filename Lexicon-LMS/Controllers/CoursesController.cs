@@ -191,18 +191,18 @@ namespace Lexicon_LMS.Controllers
             var assignmentList = await AssignmentListTeacher(id);
             var moduleList = await GetModuleListAsync(id);
             var module = moduleList.Find(y => y.IsCurrentModule);
-            var activityList = new List<ActivityListViewModel>();
+            var Moduleactivity = new ModuleActivitiesViewModel();
             var documentList = new List<ActivityListViewModel>();
 
 
             if (module != null)
-                activityList = await GetModuleActivityListAsync(module.Id);
+                Moduleactivity = await GetModuleActivityListAsync(module.Id);
 
             var model = new TeacherViewModel
             {
                 Current = current,
                 ModuleList = moduleList,
-                ActivityList = activityList,
+                ModulesActivity = Moduleactivity,
                 AssignmentList = assignmentList,
                 DocumentList = documentList
 
@@ -290,9 +290,14 @@ namespace Lexicon_LMS.Controllers
 
             return modules;
         }
-        private async Task<List<ActivityListViewModel>> GetModuleActivityListAsync(int id)
+
+
+        private async Task<ModuleActivitiesViewModel> GetModuleActivityListAsync(int id)
         {
-            var model = await _context.Activity
+
+            ModuleActivitiesViewModel model = new ModuleActivitiesViewModel();
+
+            model.ActivityList = await _context.Activity
                 .Include(a => a.ActivityType)
                 .Include(a => a.Documents)
                 .Where(a => a.Module.Id == id)
@@ -309,6 +314,9 @@ namespace Lexicon_LMS.Controllers
                     ModuleId = a.ModuleId
                 })
                 .ToListAsync();
+
+            model.ModuleId = id;
+             
 
             return model;
         }
@@ -343,7 +351,7 @@ namespace Lexicon_LMS.Controllers
                 var teacherModel = new TeacherViewModel()
                 {
                     ModuleList = modules,
-                    ActivityList = GetModuleActivityListAsync((int)id).Result,
+                    ModulesActivity = GetModuleActivityListAsync((int)id).Result,
                     CourseId = module.CourseId,  
                   
                 };

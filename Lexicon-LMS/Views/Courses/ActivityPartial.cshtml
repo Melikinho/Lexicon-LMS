@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ActivityListViewModel>
+﻿@model ModuleActivitiesViewModel
 
 
 
@@ -6,26 +6,24 @@
 
 @if (User.IsInRole("Teacher"))
 {
-    @if (Model.Any())
-    {
-        <a class="btn btn-success" onclick="showInPopup('@Url.Action($"Create","Activities", new {id=Model.FirstOrDefault().ModuleId},Context.Request.Scheme)','New Activity')">Add New Activity</a>
-        
-    }
+    
+        <a class="btn btn-success" onclick="showInPopup('@Url.Action($"Create","Activities", new {id=Model.ModuleId},Context.Request.Scheme)','New Activity')">Add New Activity</a>
+     
 }
 <table class="table  table-striped">
     <thead class="table-dark w-100">
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.ActivityName)
+                @Html.DisplayNameFor(model => model.ActivityList.First().Name)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.StartDate)
+                @Html.DisplayNameFor(model => model.ActivityList.First().StartDate)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.EndDate)
+                @Html.DisplayNameFor(model => model.ActivityList.First().EndDate)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ActivityTypeActivityTypeName)
+                @Html.DisplayNameFor(model => model.ActivityList.First().ActivityTypeActivityTypeName)
             </th>
             <th>
             </th>
@@ -35,7 +33,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.ActivityList)
         {
             <tr>
                 <td>
