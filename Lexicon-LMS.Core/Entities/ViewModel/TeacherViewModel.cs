@@ -8,7 +8,6 @@ namespace Lexicon_LMS.Core.Entities.ViewModel
 {
     public class TeacherViewModel
     {
-
         public IEnumerable<AssignmentListViewModel> AssignmentList { get; set; }
 
         public IEnumerable<ModuleViewModel> ModuleList { get; set; }
