@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Lexicon_LMS.Core.Entities.ViewModel;
 using Lexicon_LMS.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Lexicon_LMS.Controllers
 {
@@ -19,11 +20,13 @@ namespace Lexicon_LMS.Controllers
     {
         private readonly Lexicon_LMSContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CoursesController(Lexicon_LMSContext context, UserManager<User> userManager)
+        public CoursesController(IWebHostEnvironment webHostEnvironment, Lexicon_LMSContext context, UserManager<User> userManager)
         {
             _context = context;
-            _userManager = userManager;
+            _userManager = userManager;                                                                             
+            _webHostEnvironment = webHostEnvironment;                                                                                                                                                                                                                           
         }
 
         // GET: Courses
@@ -176,7 +179,6 @@ namespace Lexicon_LMS.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
         public async Task<IActionResult> CourseInfo(int? id)
         {
             if (id == null)
@@ -189,18 +191,18 @@ namespace Lexicon_LMS.Controllers
             var assignmentList = await AssignmentListTeacher(id);
             var moduleList = await GetModuleListAsync(id);
             var module = moduleList.Find(y => y.IsCurrentModule);
-            var activityList = new List<ActivityListViewModel>();
+            var Moduleactivity = new ModuleActivitiesViewModel();
             var documentList = new List<ActivityListViewModel>();
 
 
             if (module != null)
-                activityList = await GetModuleActivityListAsync(module.Id);
+                Moduleactivity = await GetModuleActivityListAsync(module.Id);
 
             var model = new TeacherViewModel
             {
                 Current = current,
                 ModuleList = moduleList,
-                ActivityList = activityList,
+                ModulesActivity = Moduleactivity,
                 AssignmentList = assignmentList,
                 DocumentList = documentList
 
@@ -213,7 +215,6 @@ namespace Lexicon_LMS.Controllers
 
             return View(model);
         }
-
         public async Task<CurrentViewModel> CurrentCourse(int? id)
         {
             var userId = _userManager.GetUserId(User);
@@ -242,8 +243,6 @@ namespace Lexicon_LMS.Controllers
 
             return model;
         }
-
-
         public async Task<List<AssignmentListViewModel>> AssignmentListTeacher(int? id)
         {
             var students = _context.Course.Find(id);
@@ -257,12 +256,16 @@ namespace Lexicon_LMS.Controllers
                     Name = a.ActivityName,
                     StartDate = a.StartDate,
                     DateEndDate = a.EndDate,
+                    CourseId = a.Module.CourseId,
+                    ModuleId = a.Module.Id,
+                    ModuleName = a.Module.ModulName,
+                    ActivityId = a.Id,
+                    Documents = a.Documents
                 })
                 .ToListAsync();
 
             return assignments;
         }
-
         public async Task<List<ModuleViewModel>> GetModuleListAsync(int? id)
         {
             var timeNow = DateTime.Now;
@@ -289,9 +292,12 @@ namespace Lexicon_LMS.Controllers
         }
 
 
-        private async Task<List<ActivityListViewModel>> GetModuleActivityListAsync(int id)
+        private async Task<ModuleActivitiesViewModel> GetModuleActivityListAsync(int id)
         {
-            var model = await _context.Activity
+
+            ModuleActivitiesViewModel model = new ModuleActivitiesViewModel();
+
+            model.ActivityList = await _context.Activity
                 .Include(a => a.ActivityType)
                 .Include(a => a.Documents)
                 .Where(a => a.Module.Id == id)
@@ -305,14 +311,15 @@ namespace Lexicon_LMS.Controllers
                     ActivityTypeActivityTypeName = a.ActivityType.ActivityTypeName,
                     Documents = a.Documents,
                     CourseId = a.Module.CourseId,
-                    ModuleId = a.ModuleId,
+                    ModuleId = a.ModuleId
                 })
                 .ToListAsync();
 
+            model.ModuleId = id;
+             
+
             return model;
         }
-
-
         public async Task<IActionResult> GetTeacherActivityAjax(int? id)
         {
             if (id == null) return BadRequest();
@@ -344,7 +351,7 @@ namespace Lexicon_LMS.Controllers
                 var teacherModel = new TeacherViewModel()
                 {
                     ModuleList = modules,
-                    ActivityList = GetModuleActivityListAsync((int)id).Result,
+                    ModulesActivity = GetModuleActivityListAsync((int)id).Result,
                     CourseId = module.CourseId,  
                   
                 };
@@ -354,7 +361,79 @@ namespace Lexicon_LMS.Controllers
 
             return BadRequest();
         }
+        [HttpPost]
+        public async Task<IActionResult> FileUpload([Bind(Prefix = "item")] AssignmentListViewModel viewModel)
+        {
 
+            var fullPath = await UploadFile(viewModel);
+            //var DocumentFile = viewModel.UploadedFile;
+            //var DocumentPath = Path.GetFileName("Upload");
+
+
+            var document = new Core.Entities.Document()
+            {
+                DocumentName = viewModel.UploadedFile.FileName,
+                FilePath = fullPath,
+                ActivityId = viewModel.ActivityId
+                // CourseId = viewModel.CourseId
+            };
+
+
+            //add
+            //savechangeews
+            _context.Add(document);
+            await _context.SaveChangesAsync();
+            //var documentPath = $"~/Upload/";
+            //document.FilePath = documentPath;
+            //var path = Path.Combine(webHostEnvironment.WebRootPath, documentPath);
+            TempData["msg"] = "File uploaded successfully";
+            return LocalRedirect("~/User/WelcomePage");
+            //return RedirectToAction(
+            //   "~/Courses/CourseInfo",
+            //   new { id = viewModel.Id });
+
+        }
+        public async Task<string> UploadFile([Bind(Prefix = "item")] AssignmentListViewModel viewModel)
+        {
+            var courseName = _context.Course.FirstOrDefault(c => c.Id == viewModel.CourseId)?.CourseName;
+            var moduleName = _context.Module.FirstOrDefault(c => c.Id == viewModel.ModuleId)?.ModulName;
+            var activityName = _context.Activity.FirstOrDefault(c => c.Id == viewModel.ActivityId)?.ActivityName;
+
+
+            var PathToFile = Path.Combine(courseName, moduleName, activityName);
+            //viewModel.CourseId.ToString(),
+            //viewModel.ModuleId.ToString(),
+            //viewModel.Id.ToString());
+            // var pathToFile = $"~/upload/{Path.Combine(viewModel.Name, "~/Upload")}/{(viewModel.ModuleModulName, "~/Upload")}/{(viewModel.ActivityName, "~/Upload")}";
+            var path = Path.Combine(_webHostEnvironment.WebRootPath, PathToFile);
+
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+
+            }
+
+            string fileName = Path.GetFileName(viewModel.UploadedFile.FileName);
+
+            var fullPath = Path.Combine(path, fileName);
+            using (FileStream FileStream = new FileStream(fullPath, FileMode.Create))
+            {
+                viewModel.UploadedFile.CopyTo(FileStream);
+            }
+
+            var savePath = Path.Combine(PathToFile, fileName);
+            return savePath;
+        }
+        [HttpGet]
+        public IActionResult DownloadFile(string filepath)
+        {
+            var fileName = Path.GetFileName(filepath);
+            var path = Path.Combine(_webHostEnvironment.WebRootPath, filepath);
+            var fs = System.IO.File.ReadAllBytes(path);
+
+            return File(fs, "application/octet-stream", fileName);
+        }
         private bool CourseExists(int id)
         {
           return (_context.Course?.Any(e => e.Id == id)).GetValueOrDefault();
