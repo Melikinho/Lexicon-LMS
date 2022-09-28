@@ -25,15 +25,15 @@ namespace Lexicon_LMS.Controllers
     {
         private readonly Lexicon_LMSContext _context;
         private readonly IMapper _mapper;
-        private readonly IWebHostEnvironment webHostEnvironment;
         private readonly UserManager<User> _userManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public UserController(IWebHostEnvironment webHostEnvironment, UserManager<User> userManager, Lexicon_LMSContext context, IMapper mapper)
         {
             _context = context;
-            this.webHostEnvironment = webHostEnvironment;
             _userManager = userManager;
-            this._mapper = mapper;
+            _mapper = mapper;
+            _webHostEnvironment = webHostEnvironment;
 
         }
 
@@ -301,13 +301,8 @@ namespace Lexicon_LMS.Controllers
 
         //    return View(model);
         //}
-        public IActionResult FileUpload()
-        {
-            return View();
-        }
-
         [HttpPost]
-        public async Task<IActionResult> FileUpload([Bind(Prefix = "item")]ActivityListViewModel viewModel)
+        public async Task<IActionResult> FileUpload([Bind(Prefix = "item")] ActivityListViewModel viewModel)
         {
 
             var fullPath = await UploadFile(viewModel);
@@ -320,7 +315,7 @@ namespace Lexicon_LMS.Controllers
                 DocumentName = viewModel.UploadedFile.FileName,
                 FilePath = fullPath,
                 ActivityId = viewModel.Id
-               // CourseId = viewModel.CourseId
+                // CourseId = viewModel.CourseId
             };
 
 
@@ -338,18 +333,7 @@ namespace Lexicon_LMS.Controllers
             //   new { id = viewModel.Id });
 
         }
-
-        [HttpGet]
-        public IActionResult DownloadFile(string filepath)
-        {
-            var fileName = Path.GetFileName(filepath);
-            var path = Path.Combine(webHostEnvironment.WebRootPath, filepath);
-            var fs = System.IO.File.ReadAllBytes(path);
-
-            return File(fs, "application/octet-stream", fileName);
-        }
-
-        public async Task<string> UploadFile([Bind(Prefix = "item")]ActivityListViewModel viewModel)
+        public async Task<string> UploadFile([Bind(Prefix = "item")] ActivityListViewModel viewModel)
         {
             var courseName = _context.Course.FirstOrDefault(c => c.Id == viewModel.CourseId)?.CourseName;
             var moduleName = _context.Module.FirstOrDefault(c => c.Id == viewModel.ModuleId)?.ModulName;
@@ -357,13 +341,13 @@ namespace Lexicon_LMS.Controllers
 
 
             var PathToFile = Path.Combine(courseName, moduleName, activityName);
-                                          //viewModel.CourseId.ToString(),
-                                          //viewModel.ModuleId.ToString(),
-                                          //viewModel.Id.ToString());
-           // var pathToFile = $"~/upload/{Path.Combine(viewModel.Name, "~/Upload")}/{(viewModel.ModuleModulName, "~/Upload")}/{(viewModel.ActivityName, "~/Upload")}";
-            var path = Path.Combine(webHostEnvironment.WebRootPath, PathToFile);
+            //viewModel.CourseId.ToString(),
+            //viewModel.ModuleId.ToString(),
+            //viewModel.Id.ToString());
+            // var pathToFile = $"~/upload/{Path.Combine(viewModel.Name, "~/Upload")}/{(viewModel.ModuleModulName, "~/Upload")}/{(viewModel.ActivityName, "~/Upload")}";
+            var path = Path.Combine(_webHostEnvironment.WebRootPath, PathToFile);
 
-            
+
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -371,7 +355,7 @@ namespace Lexicon_LMS.Controllers
             }
 
             string fileName = Path.GetFileName(viewModel.UploadedFile.FileName);
-            
+
             var fullPath = Path.Combine(path, fileName);
             using (FileStream FileStream = new FileStream(fullPath, FileMode.Create))
             {
@@ -380,6 +364,19 @@ namespace Lexicon_LMS.Controllers
 
             var savePath = Path.Combine(PathToFile, fileName);
             return savePath;
+        }
+        [HttpGet]
+        public IActionResult DownloadFile(string filepath)
+        {
+            var fileName = Path.GetFileName(filepath);
+            var path = Path.Combine(_webHostEnvironment.WebRootPath, filepath);
+            var fs = System.IO.File.ReadAllBytes(path);
+
+            return File(fs, "application/octet-stream", fileName);
+        }
+        public IActionResult FileUpload()
+        {
+            return View();
         }
     }
 }

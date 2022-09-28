@@ -137,7 +137,7 @@ namespace Lexicon_LMS.Data
                     CourseName = courselist[i],
                     StartDate = DateTime.Now.AddDays(faker.Random.Int(-5, 5)),
                     EndDate = DateTime.Now.AddDays(faker.Random.Int(10, 15)),
-                    Description = "Denna kursen har lektioner och studier innom " + courselist[i],
+                    Description = "This course has lessons and studies within " + courselist[i],
                     Modules = GetModules(modulelist, activitylist, aT),
                     Documents = GetDocuments(documentlist),
                     Users = GetStudnetUsers(),
@@ -167,7 +167,7 @@ namespace Lexicon_LMS.Data
                 var temp = new Module
                 {
                     ModulName = courselist[i],
-                    Description = "Dena module har info innom " + courselist[i],
+                    Description = "This module has information about " + courselist[i],
                     Activities = GetActivities(activitylist,aT),
                     StartDate = DateTime.Now.AddDays(faker.Random.Int(10, 15)),
                     EndDate = DateTime.Now.AddDays(faker.Random.Int(20, 25)),
@@ -191,7 +191,7 @@ namespace Lexicon_LMS.Data
                 var temp = new Document
                 {
                     DocumentName = documentlist[i],
-                    Description = "Detta documentet har info innom " + documentlist[i],
+                    Description = "This document has information about " + documentlist[i],
                     //FilePath =""
                     IsFinished = false
                 };
@@ -255,7 +255,7 @@ namespace Lexicon_LMS.Data
                 var temp = new Activity
                 {
                     ActivityName = Activitylist[i],
-                    Description = "Dena aktivitet har information för " + title,
+                    Description = "This activity has information about " + title,
                     StartDate = DateTime.Now.AddDays(faker.Random.Int(10, 15)),
                     EndDate = DateTime.Now.AddDays(faker.Random.Int(15, 20)),
 
