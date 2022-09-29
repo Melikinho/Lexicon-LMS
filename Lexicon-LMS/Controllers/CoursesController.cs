@@ -209,7 +209,8 @@ namespace Lexicon_LMS.Controllers
                 ModuleList = moduleList,
                 ModulesActivity = Moduleactivity,
                 AssignmentList = assignmentList,
-                DocumentList = documentList
+                DocumentList = documentList,
+                CourseId = currentCourse.Id,
 
             };
 
