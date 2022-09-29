@@ -198,6 +198,11 @@ namespace Lexicon_LMS.Controllers
             if (module != null)
                 Moduleactivity = await GetModuleActivityListAsync(module.Id);
 
+            if(Moduleactivity.ActivityList == null)
+            {
+                Moduleactivity.ActivityList = new List<ActivityListViewModel>();
+            }
+
             var model = new TeacherViewModel
             {
                 Current = current,
@@ -283,10 +288,18 @@ namespace Lexicon_LMS.Controllers
 
                 .OrderBy(m => m.StartDate)
                 .ToListAsync();
+            if(modules.Count() > 0)
+            {
+                var currentModuleId = modules.OrderBy(t => Math.Abs((t.StartDate - timeNow).Ticks)).First().Id;
 
-            var currentModuleId = modules.OrderBy(t => Math.Abs((t.StartDate - timeNow).Ticks)).First().Id;
-
-            SetCurrentModule(modules, currentModuleId);
+                SetCurrentModule(modules, currentModuleId);
+            }
+            else
+            {
+                modules = new List<ModuleViewModel>();
+                
+            }
+            
 
             return modules;
         }
@@ -314,6 +327,11 @@ namespace Lexicon_LMS.Controllers
                     ModuleId = a.ModuleId
                 })
                 .ToListAsync();
+
+            if(model.ActivityList == null)
+            {
+                model.ActivityList = new List<ActivityListViewModel>();
+            }
 
             model.ModuleId = id;
              
